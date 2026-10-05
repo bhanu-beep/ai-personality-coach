@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scenario-personality-analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-1:#fff7ed; --bg-2:#eef2ff; --bg-3:#ecfeff; --surface:rgba(255,255,255,.8);
+      --surface-strong:rgba(255,255,255,.95); --text:#1f2937; --muted:#6b7280; --border:rgba(255,255,255,.46);
+      --shadow:0 20px 45px rgba(31,41,55,.14); --primary:#7c3aed; --secondary:#0ea5e9; --accent:#f97316;
+      --success:#16a34a; --danger:#dc2626;
+      --card-grad:linear-gradient(135deg, rgba(124,58,237,.12), rgba(14,165,233,.09), rgba(249,115,22,.12));
+    }
+    [data-theme="dark"] {
+      --bg-1:#0f172a; --bg-2:#111827; --bg-3:#172554; --surface:rgba(17,24,39,.78); --surface-strong:rgba(17,24,39,.94);
+      --text:#f3f4f6; --muted:#cbd5e1; --border:rgba(255,255,255,.08); --shadow:0 24px 50px rgba(0,0,0,.35);
+      --primary:#a78bfa; --secondary:#38bdf8; --accent:#fb923c; --success:#4ade80; --danger:#f87171;
+      --card-grad:linear-gradient(135deg, rgba(167,139,250,.15), rgba(56,189,248,.12), rgba(251,146,60,.12));
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;font-family:'Poppins',sans-serif;color:var(--text);
+      background:radial-gradient(circle at top left,var(--bg-1),transparent 36%),radial-gradient(circle at top right,var(--bg-2),transparent 28%),radial-gradient(circle at bottom center,var(--bg-3),transparent 30%),linear-gradient(135deg,#fde68a 0%,#dbeafe 45%,#f5d0fe 100%);padding:24px}
+    .shell{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:1.25fr .75fr;gap:24px;align-items:start}
+    .panel{background:var(--surface);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow);overflow:hidden}
+    .hero{padding:28px;background:var(--card-grad);border-bottom:1px solid var(--border)}
+    .topbar,.login-row,.question-top,.trait-head,.login-meta{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:14px}.brand-mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--secondary),var(--accent));color:#fff;font-size:24px;box-shadow:0 12px 24px rgba(124,58,237,.25)}
+    h1,h2,h3{margin:0;font-family:'Nunito',sans-serif}.brand p,.muted{margin:6px 0 0;color:var(--muted)}
+    .theme-toggle,.logout-btn{border:none;width:48px;height:48px;border-radius:14px;background:var(--surface-strong);color:var(--text);cursor:pointer;font-size:20px;box-shadow:inset 0 0 0 1px var(--border)}
+    .content{padding:24px 28px 30px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+    .mini-card,.card,.result-card,.trait-card,.login-card{background:var(--surface-strong);border:1px solid var(--border);border-radius:22px;padding:18px}
+    .mini-card strong{display:block;font-size:1.25rem;margin-bottom:6px;color:var(--primary)} .mini-card span{color:var(--muted);font-size:.9rem}
+    .login-card{margin-bottom:18px}.login-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;margin-top:14px}
+    input,textarea{width:100%;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:16px;padding:14px 15px;outline:none;font-family:inherit;font-size:.96rem}
+    textarea{min-height:92px;resize:vertical} input:focus,textarea:focus{border-color:var(--secondary);box-shadow:0 0 0 4px rgba(56,189,248,.12)}
+    .question{background:var(--surface-strong);border:1px solid var(--border);border-radius:24px;padding:22px;margin-bottom:18px;transition:transform .2s ease, box-shadow .2s ease}
+    .question:hover{transform:translateY(-2px);box-shadow:0 16px 30px rgba(15,23,42,.08)} .q-no{min-width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--secondary))}
+    .question h3{margin:0 0 6px;font-size:1.05rem;line-height:1.5}.question p{margin:0;color:var(--muted);font-size:.92rem}
+    .options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.option{position:relative;border:1px solid rgba(124,58,237,.12);border-radius:18px;overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.6))}
+    [data-theme="dark"] .option{background:rgba(15,23,42,.62)} .option input[type="radio"]{position:absolute;opacity:0;pointer-events:none}
+    .option label{display:block;padding:14px 16px;cursor:pointer;min-height:70px;font-size:.95rem;line-height:1.45;font-weight:500}
+    .option input[type="radio"]:checked + label{background:linear-gradient(135deg, rgba(124,58,237,.18), rgba(14,165,233,.14), rgba(249,115,22,.16));border-left:5px solid var(--accent)}
+    .other-box{margin-top:12px;display:none}.other-box.show{display:block}.actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:22px}
+    .btn{border:none;border-radius:16px;padding:15px 22px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .2s ease, box-shadow .2s ease}.btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary),var(--accent));color:#fff;box-shadow:0 14px 28px rgba(124,58,237,.25)}
+    .btn-secondary{background:var(--surface-strong);color:var(--text);border:1px solid var(--border)}
+    .status{margin-top:16px;padding:15px 16px;border-radius:16px;font-weight:600;display:none}.status.show{display:block}.status.ok{background:rgba(22,163,74,.12);color:var(--success)}.status.warn{background:rgba(249,115,22,.12);color:#c2410c}.status.err{background:rgba(220,38,38,.12);color:var(--danger)}
+    .sidebar{position:sticky;top:24px;padding:22px}.progress-bar,.trait-meter{width:100%;overflow:hidden;border-radius:999px;background:rgba(148,163,184,.18)} .progress-bar{height:14px;margin:10px 0 8px}.progress-fill,.trait-meter span{height:100%;display:block;border-radius:999px}.progress-fill{width:0;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));transition:width .3s ease}.trait-meter{height:10px}.trait-meter span{background:linear-gradient(90deg,var(--secondary),var(--primary))}
+    .result-card{display:none}.result-card.show{display:block}.persona-title{font-size:1.3rem;font-weight:800;color:var(--primary);margin-bottom:8px}.persona-desc{color:var(--muted);line-height:1.6;margin-bottom:14px}
+    .traits-grid,.tips-grid{display:grid;gap:12px}.tip-list{margin:8px 0 0;padding-left:18px}.tip-list li{margin-bottom:8px;color:var(--muted);line-height:1.5}
+    .pill{display:inline-flex;padding:8px 12px;border-radius:999px;background:rgba(124,58,237,.12);color:var(--primary);font-size:.88rem;font-weight:600}
+    .hidden{display:none!important}
+    @media (max-width:980px){.shell{grid-template-columns:1fr}.sidebar{position:static}}
+    @media (max-width:700px){body{padding:14px}.hero,.content,.sidebar{padding:18px}.grid-3,.options,.login-form{grid-template-columns:1fr}.btn{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <main class="panel">
+      <section class="hero">
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-mark">🧠</div>
+            <div>
+              <h1>Scenario Personality Analyzer</h1>
+              <p>Login, answer 15 easy scenario questions, and see your total points only at the end.</p>
+            </div>
+          </div>
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">🌙</button>
+        </div>
+        <div class="grid-3">
+          <div class="mini-card"><strong>15</strong><span>Scenario-based questions</span></div>
+          <div class="mini-card"><strong>End Score</strong><span>Total points shown only after submission</span></div>
+          <div class="mini-card"><strong>Login</strong><span>Demo credentials: admin / 1234</span></div>
+        </div>
+      </section>
+
+      <section class="content">
+        <div class="login-card" id="loginCard">
+          <div class="login-row">
+            <div>
+              <h2>Login</h2>
+              <p class="muted">Use the demo details to start the assessment.</p>
+            </div>
+            <span class="pill">Username: admin | Password: 1234</span>
+          </div>
+          <div class="login-form">
+            <input type="text" id="username" placeholder="Enter username" value="admin">
+            <input type="password" id="password" placeholder="Enter password" value="1234">
+            <button class="btn btn-primary" type="button" id="loginBtn">Login</button>
+          </div>
+          <div class="status" id="loginStatus"></div>
+        </div>
+
+        <div id="assessmentArea" class="hidden">
+          <div class="login-meta" style="margin-bottom:18px;">
+            <div>
+              <h2 id="welcomeText">Welcome</h2>
+              <p class="muted">Answer every question. Points will be revealed only in the final result.</p>
+            </div>
+            <button class="logout-btn" id="logoutBtn" title="Logout">↩</button>
+          </div>
+
+          <form id="personalityForm"></form>
+          <div class="actions">
+            <button class="btn btn-primary" id="analyzeBtn" type="button">Analyze Personality</button>
+            <button class="btn btn-secondary" id="resetBtn" type="button">Reset Answers</button>
+          </div>
+          <div class="status" id="statusBox"></div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="panel sidebar">
+      <div class="card">
+        <h2>Progress</h2>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="muted"><span id="progressText">0 / 15 questions answered</span><br>Points are hidden during the attempt and shown only after submission.</div>
+      </div>
+
+      <div class="card">
+        <h3>Traits measured</h3>
+        <div class="tips-grid" style="margin-top:12px;grid-template-columns:1fr 1fr;">
+          <span class="pill">Confidence</span>
+          <span class="pill">Discipline</span>
+          <span class="pill">Leadership</span>
+          <span class="pill">Emotional Balance</span>
+          <span class="pill">Openness</span>
+          <span class="pill">Agreeableness</span>
+          <span class="pill">Extroversion</span>
+        </div>
+      </div>
+
+      <div class="result-card" id="resultCard">
+        <h3>Analysis Result</h3>
+        <div class="persona-title" id="personaTitle"></div>
+        <div class="persona-desc" id="personaDesc"></div>
+        <div class="card" style="padding:16px;margin-bottom:14px;">
+          <div class="trait-head"><span>Total Points</span><span id="totalPoints">0 / 75</span></div>
+          <div class="trait-head"><span>Average Points</span><span id="avgPoints">0</span></div>
+          <div class="trait-head"><span>Attempt Number</span><span id="attemptNumber">0</span></div>
+        </div>
+        <div class="traits-grid" id="traitsGrid"></div>
+        <div class="card" style="margin-top:14px;">
+          <h3 style="margin-bottom:10px;">What to change and how to change</h3>
+          <div id="changeTips" class="tips-grid"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const questions = [
+      { id:1, text:"You are standing near a railway switch. One track has five workers and the other has one worker. You have only one chance to act. What do you do?", hint:"This checks ethics, pressure handling, and decision confidence.", options:[
+        { label:"Save the five people quickly, even if the choice feels hard.", value:5, other:false },
+        { label:"Try to warn everyone first before changing anything.", value:4, other:false },
+        { label:"Freeze for a moment because every choice feels painful.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:2, text:"Your team project fails one day before submission because one member did not finish their part. What do you do first?", hint:"This checks responsibility, teamwork, and calm thinking.", options:[
+        { label:"Make a quick plan and divide the remaining work fairly.", value:5, other:false },
+        { label:"Help the weak member and finish together.", value:4, other:false },
+        { label:"Get angry and blame the person immediately.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:3, text:"You find a wallet full of cash on an empty road and nobody is watching. What would you most likely do?", hint:"This checks honesty, self-control, and empathy.", options:[
+        { label:"Look for ID and return it properly.", value:5, other:false },
+        { label:"Hand it to police or security without touching much.", value:4, other:false },
+        { label:"Keep it because nobody would know.", value:1, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:4, text:"You are asked to speak on stage with only 2 minutes to prepare. What do you do?", hint:"This checks confidence and social comfort.", options:[
+        { label:"Go on stage and speak with basic points in mind.", value:5, other:false },
+        { label:"Try it, but keep the speech short and simple.", value:4, other:false },
+        { label:"Avoid it because public speaking feels too stressful.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:5, text:"A close friend shares a secret with you, and later others pressure you to reveal it. What do you do?", hint:"This checks loyalty, empathy, and emotional control.", options:[
+        { label:"Protect the secret and politely refuse to share it.", value:5, other:false },
+        { label:"Ask your friend first before saying anything.", value:4, other:false },
+        { label:"Share part of it to reduce pressure from others.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:6, text:"You start a difficult task and realize halfway that your original plan is not working. What do you do?", hint:"This checks flexibility and problem solving.", options:[
+        { label:"Change strategy and continue with a better plan.", value:5, other:false },
+        { label:"Take advice from someone and adjust slowly.", value:4, other:false },
+        { label:"Leave the task because it is becoming frustrating.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:7, text:"A stranger falls from a bike on a busy road and people are only watching. What do you do?", hint:"This checks empathy, action, and social courage.", options:[
+        { label:"Go help immediately and make sure they are safe.", value:5, other:false },
+        { label:"Call someone nearby or emergency help first.", value:4, other:false },
+        { label:"Stay away because it may create trouble.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:8, text:"You get two job offers: one is safe and stable, the other is risky but exciting and full of learning. What would you choose?", hint:"This checks openness, risk style, and long-term thinking.", options:[
+        { label:"Choose the exciting role because growth matters more.", value:5, other:false },
+        { label:"Choose based on current responsibilities and balance.", value:4, other:false },
+        { label:"Always choose safety and avoid risk.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:9, text:"Your manager blames you for a mistake that was not fully yours. What do you do?", hint:"This checks calmness, honesty, and assertiveness.", options:[
+        { label:"Explain the facts respectfully and take your real part of responsibility.", value:5, other:false },
+        { label:"Stay calm first and discuss it privately later.", value:4, other:false },
+        { label:"Argue immediately in front of everyone.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:10, text:"You must choose one student to lead a college event, and everyone suggests that you should do it. How do you respond?", hint:"This checks leadership and ownership.", options:[
+        { label:"Accept the role and start planning with the team.", value:5, other:false },
+        { label:"Accept only if good support is available.", value:4, other:false },
+        { label:"Refuse because leadership feels too stressful.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:11, text:"Your daily schedule suddenly changes because of an emergency. What do you usually do next?", hint:"This checks adaptability and discipline.", options:[
+        { label:"Rearrange priorities and continue with the new plan.", value:5, other:false },
+        { label:"Take time to settle down, then continue step by step.", value:4, other:false },
+        { label:"Feel lost and stop being productive for the day.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:12, text:"A new class or team welcomes you, but nobody speaks to you first. What are you most likely to do?", hint:"This checks extroversion and initiative.", options:[
+        { label:"Start a conversation and introduce yourself.", value:5, other:false },
+        { label:"Wait for the right moment and talk to one person.", value:4, other:false },
+        { label:"Stay quiet and avoid interaction unless required.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:13, text:"You make a mistake in an important task, and nobody has noticed it yet. What do you do?", hint:"This checks honesty, discipline, and accountability.", options:[
+        { label:"Report it honestly and try to fix it quickly.", value:5, other:false },
+        { label:"Fix it quietly if possible, then explain if needed.", value:4, other:false },
+        { label:"Hide it and hope it is never found.", value:1, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:14, text:"You are given a free weekend. Which option sounds most like you?", hint:"This checks openness, social style, and personal energy.", options:[
+        { label:"Try something new, visit a place, or learn a skill.", value:5, other:false },
+        { label:"Rest, plan, and do a few useful personal tasks.", value:4, other:false },
+        { label:"Do nothing and avoid planning anything at all.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]},
+      { id:15, text:"A heated argument starts in your group just before an important decision. What role do you naturally take?", hint:"This checks emotional balance, leadership, and cooperation.", options:[
+        { label:"Calm people down and move the group toward a decision.", value:5, other:false },
+        { label:"Listen to both sides and support a fair solution.", value:4, other:false },
+        { label:"Step away because conflict is uncomfortable.", value:2, other:false },
+        { label:"Other", value:3, other:true } ]}
+    ];
+
+    const form = document.getElementById('personalityForm');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const statusBox = document.getElementById('statusBox');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const resultCard = document.getElementById('resultCard');
+    const personaTitle = document.getElementById('personaTitle');
+    const personaDesc = document.getElementById('personaDesc');
+    const traitsGrid = document.getElementById('traitsGrid');
+    const themeToggle = document.getElementById('themeToggle');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginStatus = document.getElementById('loginStatus');
+    const loginCard = document.getElementById('loginCard');
+    const assessmentArea = document.getElementById('assessmentArea');
+    const welcomeText = document.getElementById('welcomeText');
+
+    function renderQuestions() {
+      form.innerHTML = questions.map(q => `
+        <section class="question" data-question="${q.id}">
+          <div class="question-top">
+            <div class="q-no">${q.id}</div>
+            <div>
+              <h3>${q.text}</h3>
+              <p>${q.hint}</p>
+            </div>
+          </div>
+          <div class="options">
+            ${q.options.map((opt, index) => `
+              <div class="option">
+                <input type="radio" id="q${q.id}_${index}" name="q${q.id}" value="${index}">
+                <label for="q${q.id}_${index}">${opt.label}</label>
+              </div>
+            `).join('')}
+          </div>
+          <div class="other-box" id="otherBox${q.id}">
+            <textarea id="otherText${q.id}" placeholder="Write your own answer here."></textarea>
+          </div>
+        </section>
+      `).join('');
+
+      questions.forEach(q => {
+        const radios = document.querySelectorAll(`input[name="q${q.id}"]`);
+        radios.forEach((radio, index) => {
+          radio.addEventListener('change', () => {
+            const isOther = !!q.options[index].other;
+            const box = document.getElementById(`otherBox${q.id}`);
+            box.classList.toggle('show', isOther);
+            if (!isOther) document.getElementById(`otherText${q.id}`).value = '';
+            updateProgress();
+          });
+        });
+      });
+    }
+
+    function updateProgress() {
+      let answered = 0;
+      questions.forEach(q => {
+        const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+        if (!selected) return;
+        const option = q.options[Number(selected.value)];
+        if (option.other) {
+          const text = document.getElementById(`otherText${q.id}`).value.trim();
+          if (text) answered++;
+        } else {
+          answered++;
+        }
+      });
+      const percent = (answered / questions.length) * 100;
+      progressFill.style.width = `${percent}%`;
+      progressText.textContent = `${answered} / ${questions.length} questions answered`;
+    }
+
+    function showStatus(target, message, type) {
+      target.textContent = message;
+      target.className = `status show ${type}`;
+    }
+
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showStatus(loginStatus, data.message, 'ok');
+        loginCard.classList.add('hidden');
+        assessmentArea.classList.remove('hidden');
+        welcomeText.textContent = `Welcome, ${data.name}`;
+      } else {
+        showStatus(loginStatus, data.message || 'Login failed', 'err');
+      }
+    }
+
+    async function logout() {
+      await fetch('/logout', { method: 'POST' });
+      assessmentArea.classList.add('hidden');
+      loginCard.classList.remove('hidden');
+      resultCard.classList.remove('show');
+      resetForm(true);
+      showStatus(loginStatus, 'Logged out successfully.', 'warn');
+    }
+
+    function collectAnswers() {
+      const answers = [];
+      for (const q of questions) {
+        const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+        if (!selected) return { error: `Please answer question ${q.id}.` };
+        const option = q.options[Number(selected.value)];
+        if (option.other) {
+          const text = document.getElementById(`otherText${q.id}`).value.trim();
+          if (!text) return { error: `Please write your custom answer for question ${q.id}.` };
+          answers.push({ type: 'other', text });
+        } else {
+          answers.push(option.value);
+        }
+      }
+      return { answers };
+    }
+
+    async function analyzePersonality() {
+      const payload = collectAnswers();
+      if (payload.error) {
+        showStatus(statusBox, payload.error, 'err');
+        return;
+      }
+
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: payload.answers })
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        showStatus(statusBox, result.error || 'Analysis failed.', 'err');
+        return;
+      }
+
+      const personaText = `${result.persona}`;
+      personaTitle.textContent = personaText;
+      personaDesc.textContent = 'This report shows your likely behavior style, your total points for this attempt, and practical improvements for weaker areas.';
+      document.getElementById('totalPoints').textContent = `${result.total_points} / ${result.max_points}`;
+      document.getElementById('avgPoints').textContent = result.average_points;
+      document.getElementById('attemptNumber').textContent = result.attempt_number;
+
+      const traitLabels = {
+        confidence: 'Confidence', discipline: 'Discipline', leadership: 'Leadership',
+        neuroticism: 'Neuroticism', openness: 'Openness', agreeableness: 'Agreeableness', extroversion: 'Extroversion'
+      };
+
+      const ordered = [
+        ['confidence', result.confidence],
+        ['discipline', result.discipline],
+        ['leadership', result.leadership],
+        ['neuroticism', result.neuroticism],
+        ['openness', result.openness],
+        ['agreeableness', result.agreeableness],
+        ['extroversion', result.extroversion]
+      ];
+
+      traitsGrid.innerHTML = ordered.map(([key, value]) => `
+        <div class="trait-card">
+          <div class="trait-head"><span>${traitLabels[key]}</span><span>${value}/100</span></div>
+          <div class="trait-meter"><span style="width:${value}%"></span></div>
+          <div class="muted" style="margin-top:8px;">${result.suggestions[key]}</div>
+        </div>
+      `).join('');
+
+      const changeTips = document.getElementById('changeTips');
+      changeTips.innerHTML = result.changes_needed.map(item => `
+        <div class="trait-card">
+          <div class="trait-head"><span>${item.trait}</span><span>Improve</span></div>
+          <ul class="tip-list">${item.how_to_change.map(t => `<li>${t}</li>`).join('')}</ul>
+        </div>
+      `).join('');
+
+      resultCard.classList.add('show');
+      showStatus(statusBox, 'Analysis complete. Total points are now revealed for this attempt.', 'ok');
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function resetForm(silent=false) {
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      document.querySelectorAll('textarea').forEach(t => t.value = '');
+      document.querySelectorAll('.other-box').forEach(box => box.classList.remove('show'));
+      if (!silent) showStatus(statusBox, 'All answers cleared. You can start again.', 'warn');
+      updateProgress();
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      themeToggle.textContent = dark ? '🌙' : '☀️';
+    });
+
+    loginBtn.addEventListener('click', login);
+    logoutBtn.addEventListener('click', logout);
+    analyzeBtn.addEventListener('click', analyzePersonality);
+    resetBtn.addEventListener('click', () => resetForm(false));
+    document.addEventListener('input', e => { if (e.target.tagName === 'TEXTAREA') updateProgress(); });
+
+    renderQuestions();
+    updateProgress();
+  </script>
+</body>
+</html>
